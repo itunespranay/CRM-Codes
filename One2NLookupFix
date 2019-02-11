@@ -1,0 +1,41 @@
+function getGridRecordID()
+{
+	debugger;
+	var currentRecordID = Xrm.Page.data.entity.getId();	
+	var CRID = sliceGuid(currentRecordID);
+    var selectedRows = Xrm.Page.getControl("EntityB").getGrid().getSelectedRows();
+    var entityGuid;
+	
+    selectedRows.forEach(function(selectedRow, i) 
+    {	
+		entityGuid = selectedRow.getData().getEntity().getId();
+		var EGID = sliceGuid(entityGuid);
+		
+		var req = new XMLHttpRequest();
+		req.open("DELETE", Xrm.Page.context.getClientUrl() + "/api/data/v8.2/new_entityas("+CRID+")/new_new_entitya_new_entityb("+EGID+")/$ref", false);
+		req.setRequestHeader("Accept", "application/json");
+		req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+		req.setRequestHeader("OData-MaxVersion", "4.0");
+		req.setRequestHeader("OData-Version", "4.0");
+		req.onreadystatechange = function() {
+			if (this.readyState === 4) {
+				req.onreadystatechange = null;
+				if (this.status === 204 || this.status === 1223) {
+					//Success - No Return Data - Do Something
+				} else {
+					Xrm.Utility.alertDialog(this.statusText);
+				}
+			}
+		};
+		req.send();
+    });
+
+	var subgrid = Xrm.Page.ui.controls.get("EntityB");
+	subgrid.refresh();
+}
+
+function sliceGuid(fullGUID)
+{
+	var slicedID = fullGUID.substr(1).slice(0, -1);
+	return slicedID;
+}
